@@ -1,5 +1,7 @@
 package com.eg.libraryspiderandroid;
 
+import android.content.Context;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -38,7 +40,14 @@ public class MainActivity extends AppCompatActivity {
 
         btn_run = findViewById(R.id.btn_run);
         textView = findViewById(R.id.textView);
+
+        //初始化okhttpBaseUrl
+        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        String ssid = wifiManager.getConnectionInfo().getSSID();
+        OkHttpUtil.initBaseUrl(ssid);
+
         addListeners();
+
 
     }
 

@@ -8,6 +8,18 @@ public class OkHttpUtil {
     public static String BASE_URL = "http://192.168.99.193/libraryapp";
     private static OkHttpClient okHttpClient = new OkHttpClient();
 
+    /**
+     * 初始化BASE_URL
+     *
+     * @param wifiSsid
+     */
+    public static void initBaseUrl(String wifiSsid) {
+        if (wifiSsid.equals("dqlib") || wifiSsid.equals("office"))
+            BASE_URL = "http://baidu.server.qbserver.cn/libraryapp";
+        else
+            BASE_URL = "http://192.168.99.193/libraryapp";
+    }
+
     public static Call getCall(String url) {
         Request request = new Request.Builder()
                 .url(BASE_URL + url)
