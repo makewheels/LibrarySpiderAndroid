@@ -24,15 +24,15 @@
             android:layout_height="match_parent"
             android:text="TextView"
             android:textColor="@android:color/black"
-            android:textSize="25dp" />
+            android:textSize="20dp" />
     </ScrollView>
 
     <Button
         android:id="@+id/btn_run"
         android:layout_width="130dp"
         android:layout_height="60dp"
-        android:layout_marginStart="60dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="25dp"
         android:text="Run"
         android:textAllCaps="false"
         android:textSize="25dp"

@@ -1,9 +1,11 @@
 package com.eg.libraryspiderandroid;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ScrollView;
@@ -64,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
                         e.printStackTrace();
+                        addText("requestPositionMission发生错误：" + e.getMessage());
                     }
 
                     @Override
@@ -95,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (lines.size() == 100)
+                while (lines.size() > 200)
                     lines.remove(0);
                 lines.add(text);
                 StringBuilder stringBuilder = new StringBuilder();
@@ -130,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         //向内网发请求获取书的位置，这里应该用多线程
         for (final BarcodePosition barcodePosition : barcodePositionList) {
             final String barcode = barcodePosition.getBarcode();
-            addText(barcode);
+            addText("服务器响应：" + barcode);
 
             String url;
             String wifiSsid = wifiManager.getConnectionInfo().getSSID();
@@ -142,19 +145,21 @@ public class MainActivity extends AppCompatActivity {
             OkHttpUtil.getCallByCompleteUrl(url).enqueue(new Callback() {
                 @Override
                 public void onFailure(@NotNull Call call, @NotNull final IOException e) {
-                    addText("runMission发生错误 " + e.getMessage());
                     e.printStackTrace();
+                    addText("runMission发生错误 " + e.getMessage());
                 }
 
                 @Override
                 public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                     //解析html
                     String html = response.body().string();
-                    final String position = StringUtils.substringBetween(html, "var strWZxxxxxx = \"", "\";");
-                    String message = StringUtils.substringBetween(html, "var strMsg = \"", "\";");
+                    final String position = StringUtils.substringBetween(
+                            html, "var strWZxxxxxx = \"", "\";");
+                    String message = StringUtils.substringBetween(
+                            html, "var strMsg = \"", "\";");
                     barcodePosition.setPosition(position);
-                    addText(position);
                     barcodePosition.setMessage(message);
+                    addText("从GotoFlash获取到：" + position + message);
                     //签名
                     long timestamp = System.currentTimeMillis();
                     barcodePosition.setTimestamp(timestamp);
@@ -185,8 +190,8 @@ public class MainActivity extends AppCompatActivity {
         new OkHttpClient().newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull final IOException e) {
-                textView.setText("submitMission发生错误：" + e.getMessage());
                 e.printStackTrace();
+                addText("submitMission发生错误：" + e.getMessage());
             }
 
             @Override
@@ -196,4 +201,15 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            startActivity(intent);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }
