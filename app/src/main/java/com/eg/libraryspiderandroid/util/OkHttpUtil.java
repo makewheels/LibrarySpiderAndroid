@@ -5,7 +5,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 
 public class OkHttpUtil {
-    public static String BASE_URL = "http://192.168.99.193/libraryapp";
+    public static String BASE_URL = "http://baidu.server.qbserver.cn/libraryapp";
     private static OkHttpClient okHttpClient = new OkHttpClient();
 
     /**
@@ -15,9 +15,9 @@ public class OkHttpUtil {
      */
     public static void initBaseUrl(String wifiSsid) {
         if (wifiSsid.equals("dqlib") || wifiSsid.equals("office"))
-            BASE_URL = "http://baidu.server.qbserver.cn/libraryapp";
+            BASE_URL = "http://baidu.server.qbserver.cn:5001/libraryapp";
         else
-            BASE_URL = "http://192.168.99.193/libraryapp";
+            BASE_URL = "http://192.168.99.193:5001/libraryapp";
     }
 
     public static Call getCall(String url) {
