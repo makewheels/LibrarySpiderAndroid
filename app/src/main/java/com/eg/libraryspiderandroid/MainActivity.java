@@ -57,36 +57,6 @@ public class MainActivity extends AppCompatActivity {
         addListeners();
     }
 
-    private void addListeners() {
-        btn_run.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //获取任务
-                OkHttpUtil.getCall("/bookPosition/requestPositionMission?password=ETwrayANWeniq6HY").enqueue(new Callback() {
-                    @Override
-                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        e.printStackTrace();
-                        addText("requestPositionMission发生错误：" + e.getMessage());
-                    }
-
-                    @Override
-                    public void onResponse(@NotNull Call call, @NotNull Response response)
-                            throws IOException {
-                        String json = response.body().string();
-                        List<BarcodePosition> barcodePositionList =
-                                new Gson().fromJson(json, new TypeToken<List<BarcodePosition>>() {
-                                }.getType());
-                        //执行任务
-                        runMission(barcodePositionList);
-                        //提交任务
-                        submitMission(barcodePositionList);
-                    }
-                });
-            }
-        });
-    }
-
-
     private List<String> lines = new ArrayList<>();
 
     /**
@@ -98,9 +68,10 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                while (lines.size() > 200)
-                    lines.remove(0);
                 lines.add(text);
+                while (lines.size() > 200) {
+                    lines.remove(0);
+                }
                 StringBuilder stringBuilder = new StringBuilder();
                 for (int i = 0; i < lines.size(); i++) {
                     stringBuilder.append(lines.get(i));
@@ -125,13 +96,71 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 执行任务
-     *
-     * @param barcodePositionList
+     * 监听
      */
-    private void runMission(List<BarcodePosition> barcodePositionList) {
+    private void addListeners() {
+        btn_run.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startMission();
+            }
+        });
+    }
+
+    /**
+     * 启动任务
+     */
+    private void startMission() {
+        //获取任务
+        OkHttpUtil.getCall("/bookPosition/requestPositionMission?password=ETwrayANWeniq6HY").enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                e.printStackTrace();
+                addText("requestPositionMission发生错误：" + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response)
+                    throws IOException {
+                String json = response.body().string();
+                //初始化任务
+                barcodePositionList = new Gson().fromJson(json
+                        , new TypeToken<List<BarcodePosition>>() {
+                        }.getType());
+                progressList = new ArrayList<>();
+                for (int i = 0; i < barcodePositionList.size(); i++) {
+                    progressList.add(false);
+                }
+                //执行任务
+                runMission();
+            }
+        });
+    }
+
+    private List<BarcodePosition> barcodePositionList;
+    private List<Boolean> progressList;
+    private final Object progressLock = new Object();
+
+    /**
+     * 检查barCodeList是不是都获取完了
+     */
+    private boolean checkProgress() {
+        synchronized (progressLock) {
+            for (Boolean isFinish : progressList) {
+                if (!isFinish)
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 执行任务
+     */
+    private void runMission() {
         //向内网发请求获取书的位置，这里应该用多线程
-        for (final BarcodePosition barcodePosition : barcodePositionList) {
+        for (int i = 0; i < barcodePositionList.size(); i++) {
+            final BarcodePosition barcodePosition = barcodePositionList.get(i);
             final String barcode = barcodePosition.getBarcode();
             addText("服务器响应：" + barcode);
 
@@ -142,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
             else
                 url = "http://192.168.99.193:5001/libraryapp/bookPosition/goToFlashDemo";
 
+            final int finalI = i;
             OkHttpUtil.getCallByCompleteUrl(url).enqueue(new Callback() {
                 @Override
                 public void onFailure(@NotNull Call call, @NotNull final IOException e) {
@@ -157,15 +187,23 @@ public class MainActivity extends AppCompatActivity {
                             html, "var strWZxxxxxx = \"", "\";");
                     String message = StringUtils.substringBetween(
                             html, "var strMsg = \"", "\";");
+                    addText("从GotoFlash获取到：" + position + message);
                     barcodePosition.setPosition(position);
                     barcodePosition.setMessage(message);
-                    addText("从GotoFlash获取到：" + position + message);
                     //签名
                     long timestamp = System.currentTimeMillis();
                     barcodePosition.setTimestamp(timestamp);
                     String signKey = "vPUYt6q1AzmmjzXG";
                     String sign = DigestUtils.md5Hex(barcode + position + timestamp + signKey);
                     barcodePosition.setSign(sign);
+                    synchronized (progressLock) {
+                        //一个barCode的任务完成了，更新进度
+                        progressList.set(finalI, true);
+                        //检查是不是所有的任务都完成了，如果都完成了就提交任务
+                        if (checkProgress()) {
+                            submitMission();
+                        }
+                    }
                 }
             });
         }
@@ -173,10 +211,8 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 提交任务
-     *
-     * @param barcodePositionList
      */
-    private void submitMission(List<BarcodePosition> barcodePositionList) {
+    private void submitMission() {
         String provider = Build.BRAND + "--" + Build.MODEL + "--" + Build.VERSION.RELEASE;
         System.out.println(provider);
         RequestBody formBody = new FormBody.Builder()
