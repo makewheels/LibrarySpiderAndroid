@@ -1,11 +1,27 @@
-package com.eg.libraryspiderandroid;
+package com.eg.libraryspiderandroid.barcodeposition;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity
 public class BarcodePosition {
+    @PrimaryKey(autoGenerate = true)
+    private int autoGenerate;
     private String barcode;
+    private String mongoId;
     private String position;
     private String message;
     private long timestamp;
     private String sign;
+    private boolean isUpload;
+
+    public int getAutoGenerate() {
+        return autoGenerate;
+    }
+
+    public void setAutoGenerate(int autoGenerate) {
+        this.autoGenerate = autoGenerate;
+    }
 
     public String getBarcode() {
         return barcode;
@@ -13,6 +29,14 @@ public class BarcodePosition {
 
     public void setBarcode(String barcode) {
         this.barcode = barcode;
+    }
+
+    public String getMongoId() {
+        return mongoId;
+    }
+
+    public void setMongoId(String mongoId) {
+        this.mongoId = mongoId;
     }
 
     public String getPosition() {
@@ -45,5 +69,13 @@ public class BarcodePosition {
 
     public void setSign(String sign) {
         this.sign = sign;
+    }
+
+    public boolean isUpload() {
+        return isUpload;
+    }
+
+    public void setUpload(boolean upload) {
+        isUpload = upload;
     }
 }
