@@ -2,19 +2,41 @@ package com.eg.libraryspiderandroid.barcodeposition;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity
 public class BarcodePosition {
     @PrimaryKey
     @NonNull
+    private String holdingMongoId;
+
     private String barcode;
-    private String mongoId;
+    private long holdingIndex;
+
     private String position;
     private String message;
+    @Ignore
     private long timestamp;
+    @Ignore
     private String sign;
-    private boolean isUpload;
+    private boolean isSubmit;
+
+    public long getHoldingIndex() {
+        return holdingIndex;
+    }
+
+    public void setHoldingIndex(long holdingIndex) {
+        this.holdingIndex = holdingIndex;
+    }
+
+    public String getHoldingMongoId() {
+        return holdingMongoId;
+    }
+
+    public void setHoldingMongoId(String holdingMongoId) {
+        this.holdingMongoId = holdingMongoId;
+    }
 
     public String getBarcode() {
         return barcode;
@@ -22,14 +44,6 @@ public class BarcodePosition {
 
     public void setBarcode(String barcode) {
         this.barcode = barcode;
-    }
-
-    public String getMongoId() {
-        return mongoId;
-    }
-
-    public void setMongoId(String mongoId) {
-        this.mongoId = mongoId;
     }
 
     public String getPosition() {
@@ -64,11 +78,11 @@ public class BarcodePosition {
         this.sign = sign;
     }
 
-    public boolean isUpload() {
-        return isUpload;
+    public boolean isSubmit() {
+        return isSubmit;
     }
 
-    public void setUpload(boolean upload) {
-        isUpload = upload;
+    public void setSubmit(boolean submit) {
+        isSubmit = submit;
     }
 }

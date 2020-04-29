@@ -6,8 +6,6 @@ import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
 
-import java.util.List;
-
 @Dao
 public interface BarcodePositionDao {
     @Insert
@@ -19,7 +17,7 @@ public interface BarcodePositionDao {
     @Delete
     int delete(BarcodePosition... barcodePositions);
 
-    @Query("select * from BarcodePosition where barcode=0 limit 10")
-    List<BarcodePosition> find();
+    @Query("select * from BarcodePosition where barcode=:barcode")
+    BarcodePosition queryByBarcode(String barcode);
 
 }
