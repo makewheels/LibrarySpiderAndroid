@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import es.dmoral.toasty.Toasty;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -152,7 +153,13 @@ public class DatabaseActivity extends AppCompatActivity {
      * 在图书馆内网爬位置数据，保存到手机数据库
      */
     public void crawlDataFromLibrary(View view) {
-
+        BarcodePosition barcodePosition = null;
+        try {
+            barcodePosition = new QueryByBarcodeAsyncTask(barcodePositionDao).execute("045906008869").get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        Toasty.info(DatabaseActivity.this, JSON.toJSONString(barcodePosition)).show();
     }
 
     /**
