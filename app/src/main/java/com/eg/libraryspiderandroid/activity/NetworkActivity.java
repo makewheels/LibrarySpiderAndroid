@@ -1,6 +1,5 @@
 package com.eg.libraryspiderandroid.activity;
 
-import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -49,7 +48,7 @@ public class NetworkActivity extends AppCompatActivity {
         textView = findViewById(R.id.textView);
         scrollView = findViewById(R.id.scrollView);
 
-        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
         //初始化okhttpBaseUrl
         String wifiSsid = wifiManager.getConnectionInfo().getSSID();
         OkHttpUtil.initBaseUrl(wifiSsid);

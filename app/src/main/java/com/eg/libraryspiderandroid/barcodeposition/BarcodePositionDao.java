@@ -6,6 +6,8 @@ import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
 
+import java.util.List;
+
 @Dao
 public interface BarcodePositionDao {
     @Insert
@@ -20,4 +22,6 @@ public interface BarcodePositionDao {
     @Query("select * from BarcodePosition where barcode=:barcode")
     BarcodePosition queryByBarcode(String barcode);
 
+    @Query("select * from BarcodePosition where isSubmit=0 limit :amount")
+    List<BarcodePosition> queryNotSubmit(int amount);
 }
