@@ -321,6 +321,7 @@ public class DatabaseActivity extends AppCompatActivity {
      * 通过内网提交到我的电脑上，或者直接提交到公网服务也行
      */
     public void submitData(View view) {
-
+        //查询数据库
+        //提交任务
     }
 }

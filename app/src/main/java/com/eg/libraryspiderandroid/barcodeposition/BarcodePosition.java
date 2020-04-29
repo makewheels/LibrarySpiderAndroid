@@ -21,20 +21,14 @@ public class BarcodePosition {
     @Ignore
     private String sign;
     private boolean isSubmit;
+    private boolean isCrawl;
 
-    public long getHoldingIndex() {
-        return holdingIndex;
-    }
-
-    public void setHoldingIndex(long holdingIndex) {
-        this.holdingIndex = holdingIndex;
-    }
-
+    @NonNull
     public String getHoldingMongoId() {
         return holdingMongoId;
     }
 
-    public void setHoldingMongoId(String holdingMongoId) {
+    public void setHoldingMongoId(@NonNull String holdingMongoId) {
         this.holdingMongoId = holdingMongoId;
     }
 
@@ -44,6 +38,14 @@ public class BarcodePosition {
 
     public void setBarcode(String barcode) {
         this.barcode = barcode;
+    }
+
+    public long getHoldingIndex() {
+        return holdingIndex;
+    }
+
+    public void setHoldingIndex(long holdingIndex) {
+        this.holdingIndex = holdingIndex;
     }
 
     public String getPosition() {
@@ -84,5 +86,13 @@ public class BarcodePosition {
 
     public void setSubmit(boolean submit) {
         isSubmit = submit;
+    }
+
+    public boolean isCrawl() {
+        return isCrawl;
+    }
+
+    public void setCrawl(boolean crawl) {
+        isCrawl = crawl;
     }
 }

@@ -25,7 +25,7 @@ public class EntranceActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entrance);
 
-        copyDbFile();
+//        copyDbFile();
 
     }
 
