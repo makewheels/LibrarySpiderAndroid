@@ -1,12 +1,13 @@
 package com.eg.libraryspiderandroid.barcodeposition;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity
 public class BarcodePosition {
-    @PrimaryKey(autoGenerate = true)
-    private int autoGenerate;
+    @PrimaryKey
+    @NonNull
     private String barcode;
     private String mongoId;
     private String position;
@@ -14,14 +15,6 @@ public class BarcodePosition {
     private long timestamp;
     private String sign;
     private boolean isUpload;
-
-    public int getAutoGenerate() {
-        return autoGenerate;
-    }
-
-    public void setAutoGenerate(int autoGenerate) {
-        this.autoGenerate = autoGenerate;
-    }
 
     public String getBarcode() {
         return barcode;

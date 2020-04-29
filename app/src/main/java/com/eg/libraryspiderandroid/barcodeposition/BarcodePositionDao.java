@@ -19,7 +19,7 @@ public interface BarcodePositionDao {
     @Delete
     int delete(BarcodePosition... barcodePositions);
 
-    @Query("select * from BarcodePosition where isUpload=0 limit 10")
+    @Query("select * from BarcodePosition where barcode=0 limit 10")
     List<BarcodePosition> find();
 
 }
