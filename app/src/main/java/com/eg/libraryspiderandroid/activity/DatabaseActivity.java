@@ -14,6 +14,7 @@ import com.eg.libraryspiderandroid.util.AppDatabase;
 import com.eg.libraryspiderandroid.util.OkHttpUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -109,7 +110,10 @@ public class DatabaseActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response)
                     throws IOException {
-                List<BarcodePosition> barcodePositionList = JSON.parseArray(response.body().string(),
+                String json = response.body().string();
+                if (StringUtils.isEmpty(json))
+                    return;
+                List<BarcodePosition> barcodePositionList = JSON.parseArray(json,
                         BarcodePosition.class);
                 //如果为空，requestData任务结束
                 boolean isEmpty = CollectionUtils.isEmpty(barcodePositionList);
