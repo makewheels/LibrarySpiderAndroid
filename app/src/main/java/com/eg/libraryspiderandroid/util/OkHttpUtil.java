@@ -17,7 +17,7 @@ public class OkHttpUtil {
         if (wifiSsid.equals("dqlib") || wifiSsid.equals("office"))
             BASE_URL = "http://baidu.server.qbserver.cn:5001/libraryapp";
         else
-        BASE_URL = "http://192.168.99.193:5001/libraryapp";
+            BASE_URL = "http://192.168.99.193:5001/libraryapp";
     }
 
     public static Call getCall(String url) {

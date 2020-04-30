@@ -3,10 +3,13 @@ package com.eg.libraryspiderandroid.activity;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.alibaba.fastjson.JSON;
@@ -27,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import es.dmoral.toasty.Toasty;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -53,6 +57,35 @@ public class DatabaseActivity extends AppCompatActivity {
         wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
         AppDatabase appDatabase = AppDatabase.getAppDatabase(this);
         barcodePositionDao = appDatabase.getBarcodePositionDao();
+    }
+
+    private String currentLocation = "library";
+
+    /**
+     * 决定当前位置，以决定url
+     *
+     * @param menu
+     * @return
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_set_location, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_item_setHome:
+                currentLocation = "home";
+                Toasty.info(this, "currentLocation = " + currentLocation).show();
+                return true;
+            case R.id.menu_item_setLibrary:
+                currentLocation = "library";
+                Toasty.info(this, "currentLocation = " + currentLocation).show();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     static class InsertAsyncTask extends AsyncTask<BarcodePosition, Void, Void> {
@@ -235,6 +268,7 @@ public class DatabaseActivity extends AppCompatActivity {
      * 在图书馆内网爬位置数据，保存到手机数据库
      */
     public void crawlDataFromLibrary(View view) {
+        addText("currentLocation = " + currentLocation);
         //查询数据库
         List<BarcodePosition> barcodePositionList = null;
         try {
@@ -263,11 +297,19 @@ public class DatabaseActivity extends AppCompatActivity {
                     final BarcodePosition barcodePosition = finalBarcodePositionList.get(finalI);
                     final String barcode = barcodePosition.getBarcode();
                     final String url;
-                    String wifiSsid = wifiManager.getConnectionInfo().getSSID();
-                    if (wifiSsid.equals("dqlib") || wifiSsid.equals("office"))
+                    if (currentLocation.equals("library")) {
                         url = "http://10.0.15.12/TSDW/GotoFlash.aspx?szBarCode=" + barcode;
-                    else
+                    } else if (currentLocation.equals("home")) {
                         url = "http://192.168.99.193:5001/libraryapp/bookPosition/goToFlashDemo";
+                    } else {
+                        addText("url不识别，return");
+                        return;
+                    }
+//                    String wifiSsid = wifiManager.getConnectionInfo().getSSID();
+//                    if (wifiSsid.equals("dqlib") || wifiSsid.equals("office"))
+//                        url = "http://10.0.15.12/TSDW/GotoFlash.aspx?szBarCode=" + barcode;
+//                    else
+//                        url = "http://192.168.99.193:5001/libraryapp/bookPosition/goToFlashDemo";
                     //向图书馆内网发请求获取位置信息
                     OkHttpUtil.getCallByCompleteUrl(url).enqueue(new Callback() {
                         @Override
@@ -315,6 +357,7 @@ public class DatabaseActivity extends AppCompatActivity {
             });
         }
     }
+
 
     /**
      * 在图书馆内网爬完了回到家，把手机数据库中的数据，
