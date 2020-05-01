@@ -2,6 +2,7 @@ package com.eg.libraryspiderandroid.activity;
 
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,7 +19,9 @@ import com.eg.libraryspiderandroid.barcodeposition.BarcodePosition;
 import com.eg.libraryspiderandroid.barcodeposition.BarcodePositionDao;
 import com.eg.libraryspiderandroid.util.AppDatabase;
 import com.eg.libraryspiderandroid.util.OkHttpUtil;
+import com.google.gson.Gson;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +36,10 @@ import java.util.concurrent.Executors;
 import es.dmoral.toasty.Toasty;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class DatabaseActivity extends AppCompatActivity {
@@ -146,16 +153,29 @@ public class DatabaseActivity extends AppCompatActivity {
         }
     }
 
-    static class QueryNotSubmitAsyncTask extends AsyncTask<Integer, Void, List<BarcodePosition>> {
+    static class QueryNotCrawlAsyncTask extends AsyncTask<Integer, Void, List<BarcodePosition>> {
         private BarcodePositionDao barcodePositionDao;
 
-        QueryNotSubmitAsyncTask(BarcodePositionDao barcodePositionDao) {
+        QueryNotCrawlAsyncTask(BarcodePositionDao barcodePositionDao) {
             this.barcodePositionDao = barcodePositionDao;
         }
 
         @Override
         protected List<BarcodePosition> doInBackground(Integer... amounts) {
-            return barcodePositionDao.queryNotSubmit(amounts[0]);
+            return barcodePositionDao.queryNotCrawl(amounts[0]);
+        }
+    }
+
+    static class QueryCrawlButNotSubmitAsyncTask extends AsyncTask<Integer, Void, List<BarcodePosition>> {
+        private BarcodePositionDao barcodePositionDao;
+
+        QueryCrawlButNotSubmitAsyncTask(BarcodePositionDao barcodePositionDao) {
+            this.barcodePositionDao = barcodePositionDao;
+        }
+
+        @Override
+        protected List<BarcodePosition> doInBackground(Integer... amounts) {
+            return barcodePositionDao.queryCrawlButNotSubmit(amounts[0]);
         }
     }
 
@@ -249,7 +269,7 @@ public class DatabaseActivity extends AppCompatActivity {
     private List<Boolean> progressList;
     private final Object progressLock = new Object();
     //线程池
-    private ExecutorService executorService = Executors.newFixedThreadPool(5);
+    private ExecutorService executorService = Executors.newFixedThreadPool(6);
 
     /**
      * 检查进度
@@ -272,13 +292,13 @@ public class DatabaseActivity extends AppCompatActivity {
         //查询数据库
         List<BarcodePosition> barcodePositionList = null;
         try {
-            barcodePositionList = new QueryNotSubmitAsyncTask(barcodePositionDao).execute(200).get();
+            barcodePositionList = new QueryNotCrawlAsyncTask(barcodePositionDao).execute(200).get();
             addText("查出数据：" + barcodePositionList.size() + " 条");
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
         if (CollectionUtils.isEmpty(barcodePositionList)) {
-            addText("the end!!!!!!!!");
+            addText("crawlDataFromLibrary the end!!!!!!!!");
             executorService.shutdown();
             return;
         }
@@ -334,7 +354,7 @@ public class DatabaseActivity extends AppCompatActivity {
                                     + barcodePosition.getPosition() + " "
                                     + barcodePosition.getMessage());
                             //更新数据库
-                            barcodePosition.setSubmit(true);
+                            barcodePosition.setCrawl(true);
                             new UpdateAsyncTask(barcodePositionDao).execute(barcodePosition);
                             try {
                                 Thread.sleep(50);
@@ -352,12 +372,10 @@ public class DatabaseActivity extends AppCompatActivity {
                             }
                         }
                     });
-
                 }
             });
         }
     }
-
 
     /**
      * 在图书馆内网爬完了回到家，把手机数据库中的数据，
@@ -365,6 +383,62 @@ public class DatabaseActivity extends AppCompatActivity {
      */
     public void submitData(View view) {
         //查询数据库
-        //提交任务
+        List<BarcodePosition> barcodePositionList = null;
+        try {
+            //需要找到已经爬取了的，但是没提交的数据
+            barcodePositionList = new QueryCrawlButNotSubmitAsyncTask(barcodePositionDao).execute(200).get();
+            addText("查出数据：" + barcodePositionList.size() + " 条 " + System.currentTimeMillis());
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        if (CollectionUtils.isEmpty(barcodePositionList)) {
+            addText("submitData the end!!!!!!!!");
+            executorService.shutdown();
+            return;
+        }
+        //稍微显示一下进度
+        addText(barcodePositionList.get(0).getHoldingIndex() + "");
+        //签名
+        for (BarcodePosition barcodePosition : barcodePositionList) {
+            long timestamp = System.currentTimeMillis();
+            barcodePosition.setTimestamp(timestamp);
+            String signKey = "vPUYt6q1AzmmjzXG";
+            String sign = DigestUtils.md5Hex(barcodePosition.getBarcode()
+                    + barcodePosition.getPosition() + timestamp + signKey);
+            barcodePosition.setSign(sign);
+        }
+        //向服务器提交数据
+        String provider = Build.BRAND + "--" + Build.MODEL + "--" + Build.VERSION.RELEASE;
+        RequestBody requestBody = new FormBody.Builder()
+                .add("provider", provider)
+                .add("barcodePositionJson", new Gson().toJson(barcodePositionList))
+                .build();
+        Request request = new Request.Builder()
+                .url(OkHttpUtil.BASE_URL + "/bookPosition/submitPositionMission")
+                .post(requestBody)
+                .build();
+        final List<BarcodePosition> finalBarcodePositionList = barcodePositionList;
+        new OkHttpClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull final IOException e) {
+                e.printStackTrace();
+                addText("submitData发生错误：" + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull final Response response) throws IOException {
+                String responseString = response.body().string();
+                addText("submitData响应：" + responseString);
+                if (!responseString.equals("ok"))
+                    addText("response string 不是ok，出现错误");
+                //更新为已提交
+                for (BarcodePosition barcodePosition : finalBarcodePositionList) {
+                    barcodePosition.setSubmit(true);
+                    new UpdateAsyncTask(barcodePositionDao).execute(barcodePosition);
+                }
+                //继续
+                submitData(null);
+            }
+        });
     }
 }

@@ -1,7 +1,6 @@
 package com.eg.libraryspiderandroid.barcodeposition;
 
 import androidx.room.Dao;
-import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
@@ -16,12 +15,12 @@ public interface BarcodePositionDao {
     @Update
     int update(BarcodePosition... barcodePositions);
 
-    @Delete
-    int delete(BarcodePosition... barcodePositions);
-
     @Query("select * from BarcodePosition where barcode=:barcode")
     BarcodePosition queryByBarcode(String barcode);
 
-    @Query("select * from BarcodePosition where isSubmit=0 limit :amount")
-    List<BarcodePosition> queryNotSubmit(int amount);
+    @Query("select * from BarcodePosition where isCrawl=0 limit :amount")
+    List<BarcodePosition> queryNotCrawl(int amount);
+
+    @Query("select * from BarcodePosition where isCrawl=1 and isSubmit=0 limit :amount")
+    List<BarcodePosition> queryCrawlButNotSubmit(int amount);
 }

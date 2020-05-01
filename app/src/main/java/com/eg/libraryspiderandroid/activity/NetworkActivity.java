@@ -213,14 +213,13 @@ public class NetworkActivity extends AppCompatActivity {
      */
     private void submitMission() {
         String provider = Build.BRAND + "--" + Build.MODEL + "--" + Build.VERSION.RELEASE;
-        System.out.println(provider);
-        RequestBody formBody = new FormBody.Builder()
+        RequestBody requestBody = new FormBody.Builder()
                 .add("provider", provider)
                 .add("barcodePositionJson", new Gson().toJson(barcodePositionList))
                 .build();
         Request request = new Request.Builder()
                 .url(OkHttpUtil.BASE_URL + "/bookPosition/submitPositionMission")
-                .post(formBody)
+                .post(requestBody)
                 .build();
         new OkHttpClient().newCall(request).enqueue(new Callback() {
             @Override
