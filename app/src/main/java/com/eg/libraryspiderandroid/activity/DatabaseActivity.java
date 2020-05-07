@@ -166,6 +166,19 @@ public class DatabaseActivity extends AppCompatActivity {
         }
     }
 
+    static class QueryNotCrawledAsyncTask extends AsyncTask<Integer, Void, List<BarcodePosition>> {
+        private BarcodePositionDao barcodePositionDao;
+
+        QueryNotCrawledAsyncTask(BarcodePositionDao barcodePositionDao) {
+            this.barcodePositionDao = barcodePositionDao;
+        }
+
+        @Override
+        protected List<BarcodePosition> doInBackground(Integer... amounts) {
+            return barcodePositionDao.queryNotCrawl(amounts[0]);
+        }
+    }
+
     static class QueryCrawlButNotSubmitAsyncTask extends AsyncTask<Integer, Void, List<BarcodePosition>> {
         private BarcodePositionDao barcodePositionDao;
 
@@ -176,6 +189,19 @@ public class DatabaseActivity extends AppCompatActivity {
         @Override
         protected List<BarcodePosition> doInBackground(Integer... amounts) {
             return barcodePositionDao.queryCrawlButNotSubmit(amounts[0]);
+        }
+    }
+
+    static class QueryCrawlAndSubmitAsyncTask extends AsyncTask<Integer, Void, List<BarcodePosition>> {
+        private BarcodePositionDao barcodePositionDao;
+
+        QueryCrawlAndSubmitAsyncTask(BarcodePositionDao barcodePositionDao) {
+            this.barcodePositionDao = barcodePositionDao;
+        }
+
+        @Override
+        protected List<BarcodePosition> doInBackground(Integer... amounts) {
+            return barcodePositionDao.queryCrawlAndSubmit(amounts[0]);
         }
     }
 
@@ -440,5 +466,41 @@ public class DatabaseActivity extends AppCompatActivity {
                 submitData(null);
             }
         });
+    }
+
+    /**
+     * 重置数据库中的所有位置数据的，已提交，标记为false
+     *
+     * @param view
+     */
+    public void resetSubmitToFalseInDatabase(View view) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<BarcodePosition> barcodePositionList = null;
+                while (true) {
+                    try {
+                        barcodePositionList = new QueryCrawlAndSubmitAsyncTask(barcodePositionDao).execute(200).get();
+                        addText("found " + barcodePositionList.size());
+                    } catch (ExecutionException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if (CollectionUtils.isEmpty(barcodePositionList)) {
+                        addText("resetSubmitToFalseInDatabase finished!!!!!!!");
+                        return;
+                    }
+                    for (BarcodePosition barcodePosition : barcodePositionList) {
+                        barcodePosition.setSubmit(false);
+                        new UpdateAsyncTask(barcodePositionDao).execute(barcodePosition);
+                        addText(barcodePosition.getHoldingIndex() + " " + barcodePosition.getBarcode());
+                    }
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
     }
 }

@@ -23,4 +23,7 @@ public interface BarcodePositionDao {
 
     @Query("select * from BarcodePosition where isCrawl=1 and isSubmit=0 limit :amount")
     List<BarcodePosition> queryCrawlButNotSubmit(int amount);
+
+    @Query("select * from BarcodePosition where isCrawl=1 and isSubmit=1 limit :amount")
+    List<BarcodePosition> queryCrawlAndSubmit(int amount);
 }

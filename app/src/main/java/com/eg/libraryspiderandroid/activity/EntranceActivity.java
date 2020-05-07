@@ -25,11 +25,11 @@ public class EntranceActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entrance);
 
-        copyDbFile();
+        checkDbFile();
 
     }
 
-    private void copyDbFile() {
+    private void checkDbFile() {
         //先看文件是不是已经存在了，如果已经存在，就返回
         File databaseFile = getDatabasePath("AppDatabase");
         if (databaseFile.exists()) {
