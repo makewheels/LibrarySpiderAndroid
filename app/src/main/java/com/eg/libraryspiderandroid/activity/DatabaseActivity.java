@@ -1,11 +1,12 @@
 package com.eg.libraryspiderandroid.activity;
 
-import android.content.Intent;
-import android.net.Uri;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,10 +15,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
+import androidx.core.app.ActivityCompat;
 
 import com.alibaba.fastjson.JSON;
-import com.eg.libraryspiderandroid.BuildConfig;
 import com.eg.libraryspiderandroid.R;
 import com.eg.libraryspiderandroid.barcodeposition.BarcodePosition;
 import com.eg.libraryspiderandroid.barcodeposition.BarcodePositionDao;
@@ -27,6 +27,7 @@ import com.google.gson.Gson;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,6 +54,8 @@ public class DatabaseActivity extends AppCompatActivity {
 
     private WifiManager wifiManager;
     private BarcodePositionDao barcodePositionDao;
+
+    private final static int REQUEST_CODE = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -512,13 +515,33 @@ public class DatabaseActivity extends AppCompatActivity {
     /**
      * 分享数据库文件
      */
-    public void shareDbFile() {
+    public void shareDbFile(View view) {
         File databaseFile = getDatabasePath("AppDatabase");
-        Uri uri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID, databaseFile);
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.putExtra(Intent.EXTRA_STREAM, uri);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        startActivity(intent);
+        //检查权限，如果是没获取权限，就申请权限
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_EXTERNAL_STORAGE},
+                    REQUEST_CODE);
+        }
+
+        File targetFile = new File(
+                Environment.getExternalStorageDirectory().getPath() +
+                        "/Download/AppDatabase");
+        if (!targetFile.exists()) {
+            try {
+                targetFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            FileUtils.copyFile(databaseFile, targetFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
