@@ -1,5 +1,7 @@
 package com.eg.libraryspiderandroid.activity;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -12,8 +14,10 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import com.alibaba.fastjson.JSON;
+import com.eg.libraryspiderandroid.BuildConfig;
 import com.eg.libraryspiderandroid.R;
 import com.eg.libraryspiderandroid.barcodeposition.BarcodePosition;
 import com.eg.libraryspiderandroid.barcodeposition.BarcodePositionDao;
@@ -26,6 +30,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -502,5 +507,18 @@ public class DatabaseActivity extends AppCompatActivity {
                 }
             }
         }).start();
+    }
+
+    /**
+     * 分享数据库文件
+     */
+    public void shareDbFile() {
+        File databaseFile = getDatabasePath("AppDatabase");
+        Uri uri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID, databaseFile);
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(intent);
     }
 }
