@@ -513,7 +513,6 @@ public class DatabaseActivity extends AppCompatActivity {
      * 分享数据库文件
      */
     public void shareDbFile(View view) {
-        File databaseFile = getDatabasePath("AppDatabase");
         //检查权限，如果是没获取权限，就申请权限
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -523,14 +522,20 @@ public class DatabaseActivity extends AppCompatActivity {
                             Manifest.permission.READ_EXTERNAL_STORAGE},
                     REQUEST_CODE);
         }
-
-        File targetFile = new File(
-                Environment.getExternalStorageDirectory().getPath() +
-                        "/Download/AppDatabase");
-        try {
-            FileUtils.copyFile(databaseFile, targetFile);
-        } catch (IOException e) {
-            e.printStackTrace();
+        //复制三个文件
+        String[] fileNameArray = new String[]{"AppDatabase", "AppDatabase-shm", "AppDatabase-wal"};
+        for (String fileName : fileNameArray) {
+            File databaseFile = getDatabasePath(fileName);
+            File targetFile = new File(
+                    Environment.getExternalStorageDirectory().getPath() +
+                            "/Download/" + fileName);
+            try {
+                FileUtils.copyFile(databaseFile, targetFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+        //复制完成
+        Toasty.info(this, "copy finished!").show();
     }
 }
