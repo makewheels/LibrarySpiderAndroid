@@ -14,10 +14,11 @@ public class OkHttpUtil {
      * @param wifiSsid
      */
     public static void initBaseUrl(String wifiSsid) {
-        if (wifiSsid.equals("dqlib") || wifiSsid.equals("office"))
+        if (wifiSsid.equals("dqlib") || wifiSsid.equals("office")) {
             BASE_URL = "http://baidu.server.qbserver.cn:5001/libraryapp";
-        else
+        } else {
             BASE_URL = "http://192.168.0.100:5001/libraryapp";
+        }
     }
 
     public static Call getCall(String url) {

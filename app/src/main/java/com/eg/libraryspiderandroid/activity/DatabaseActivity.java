@@ -2,12 +2,10 @@ package com.eg.libraryspiderandroid.activity;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -53,7 +51,6 @@ public class DatabaseActivity extends AppCompatActivity {
     private ScrollView scrollView;
     private TextView textView;
 
-    private WifiManager wifiManager;
     private BarcodePositionDao barcodePositionDao;
 
     private final static int REQUEST_CODE = 0;
@@ -70,7 +67,6 @@ public class DatabaseActivity extends AppCompatActivity {
         scrollView = findViewById(R.id.scrollView);
         textView = findViewById(R.id.textView);
 
-        wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
         AppDatabase appDatabase = AppDatabase.getAppDatabase(this);
         barcodePositionDao = appDatabase.getBarcodePositionDao();
     }
@@ -532,12 +528,9 @@ public class DatabaseActivity extends AppCompatActivity {
                 Environment.getExternalStorageDirectory().getPath() +
                         "/Download/AppDatabase");
         try {
-            Log.e("tag", databaseFile.getPath());
-            Log.e("tag", targetFile.getPath());
             FileUtils.copyFile(databaseFile, targetFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }

@@ -111,17 +111,18 @@ public class NetworkActivity extends AppCompatActivity {
      */
     private void startMission() {
         //获取任务
-        OkHttpUtil.getCall("/bookPosition/requestPositionMission?password=ETwrayANWeniq6HY").enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                e.printStackTrace();
-                addText("requestPositionMission发生错误：" + e.getMessage());
-            }
+        OkHttpUtil.getCall("/bookPosition/requestPositionMission?password=ETwrayANWeniq6HY")
+                .enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                        e.printStackTrace();
+                        addText("requestPositionMission发生错误：" + e.getMessage());
+                    }
 
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response)
-                    throws IOException {
-                String json = response.body().string();
+                    @Override
+                    public void onResponse(@NotNull Call call, @NotNull Response response)
+                            throws IOException {
+                        String json = response.body().string();
                 //初始化任务
                 barcodePositionList = new Gson().fromJson(json
                         , new TypeToken<List<BarcodePosition>>() {
