@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -530,14 +531,9 @@ public class DatabaseActivity extends AppCompatActivity {
         File targetFile = new File(
                 Environment.getExternalStorageDirectory().getPath() +
                         "/Download/AppDatabase");
-        if (!targetFile.exists()) {
-            try {
-                targetFile.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
         try {
+            Log.e("tag", databaseFile.getPath());
+            Log.e("tag", targetFile.getPath());
             FileUtils.copyFile(databaseFile, targetFile);
         } catch (IOException e) {
             e.printStackTrace();
